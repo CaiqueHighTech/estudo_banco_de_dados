@@ -1,0 +1,14 @@
+[project]
+name = "banco_dados"
+version = "0.1.0"
+description = "Projeto para estudo sobre banco de dados"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    
+]
+ 
+[tool.taskipy.tasks]
+
+# ---------- Execução / utilidades ----------
+dev      = "uv run banco_estudo.py"
