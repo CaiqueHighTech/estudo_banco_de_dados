@@ -40,7 +40,7 @@ class DatabaseConnection:
             cls._instance._initialized = False
         return cls._instance
     
-    def __init__(self, db_name: str = "estudo_db"):
+    def __init__(self, db_name: str = "estudo.db"):
         if self._initialized:
             return
         
@@ -435,6 +435,142 @@ class AtualizarGastoCommand(Command):
             print("4. Todos os campos")
 
             opcao = self.view.solicitar_input("\nEscolha: ")
-        
 
+            atualizador = self.atualizadores.get(opcao)
+            if not atualizador:
+                print("❌ Opção inválida!")
+                return
+            
+            atualizador(gasto)
+            self.repo.atualizar(gasto)
+            print("✓ Gasto atualizado com sucesso!")
 
+        except ValueError:
+            print("❌ ID inválido!")
+        except sqlite3.Error as e:
+            print(f"❌ Erro ao atualizar: {e}")
+    
+    def atualizar_descricao(self, gasto: Gasto) -> None:
+        gasto.descricao = self.view.solicitar_input("Nova descrição: ")
+    
+    def atualizar_valor(self, gasto: Gasto) -> None:
+        gasto.gasto = float(self.view.solicitar_input("Novo valor (R$): "))
+    
+    def atualizar_data(self, gasto: Gasto) -> None:
+        gasto.data_gasto = self.view.solicitar_input("Nova data (YYYY-MM-DD): ")
+    
+    def atualizar_tudo(self, gasto: Gasto) -> None:
+       self.atualizar_descricao(gasto)
+       self.atualizar_valor(gasto)
+       self.atualizar_data(gasto)
+
+class DeletarGastoCommand(Command):
+    def __init__(self, repo: GastoRepository, view: GastoView):
+        self.repo = repo
+        self.view = view
+    
+    def executar(self):
+        self.view.exibir_cabecalho("DELETAR GASTO")
+
+        try:
+            id_gasto = int(self.view.solicitar_input("ID do gasto: "))
+            
+            gasto = self.repo.buscar_por_id(id_gasto)
+            if not gasto:
+                print(f"❌ Gasto ID {id_gasto} não encontrado!")
+                return
+            
+            print(f"\n{gasto}")
+            confirmacao = self.view.solicitar_input("Confirmar exclusão? (s/n): ").lower()
+            if confirmacao == 's':
+                self.repo.deletar(id_gasto)
+                print("✓ Gasto deletado com sucesso!")
+            else:
+                print("❌ Operação cancelada.")
+        except ValueError:
+            print("❌ ID inválido!")
+        except sqlite3.Error as e:
+            print(f"❌ Erro ao deletar: {e}")
+
+class EstatisticasCommand(Command):
+    def __init__(self, repo: GastoRepository, view: GastoView):
+        self.repo = repo
+        self.view = view
+
+    def executar(self) -> None:
+        self.view.exibir_cabecalho("ESTATÍSTICAS DE GASTOS")
+        stats = self.repo.obter_estatisticas()
+        self.view.exibir_estatisticas(stats)
+
+class LimparTelaCommand(Command):
+    def __init__(self, view: GastoView):
+        self.view = view
+
+    def executar(self) -> None:
+        self.view.limpar_tela()
+
+# ==================== CONTROLADOR (MVC) ====================
+
+class MenuController:
+    """Controlador principal do sistema"""
+
+    def __init__(self):
+        self.db = DatabaseConnection()
+        self.repo = GastoRepository(self.db)
+        self.view = GastoView()
+
+        # Mapeamento de opções para comandos
+        self.comandos: Dict[str, Command] = {
+            '1': InserirGastoCommand(self.repo, self.view),
+            '2': ListarGastosCommand(self.repo, self.view),
+            '3': BuscarGastosCommand(self.repo, self.view),
+            '4': AtualizarGastoCommand(self.repo, self.view),
+            '5': DeletarGastoCommand(self.repo, self.view),
+            '6': EstatisticasCommand(self.repo, self.view),
+            '7': LimparTelaCommand(self.view)
+        }
+
+    def exibir_menu(self) -> None:
+        """Exibe o menu principal"""
+        print("\n" + "="*50)
+        print("💰 GERENCIADOR DE GASTOS")
+        print("="*50)
+        print("1. 📝 Inserir novo gasto")
+        print("2. 📋 Listar todos os gastos")
+        print("3. 🔍 Buscar gastos")
+        print("4. ✏️  Atualizar gasto")
+        print("5. 🗑️  Deletar gasto")
+        print("6. 📊 Estatísticas")
+        print("7. 🧹 Limpar tela")
+        print("0. ❌ Sair")
+        print("="*50)
+
+    def executar(self) -> None:
+        """Loop principal do programa"""
+        while True:
+            self.exibir_menu()
+            opcao = self.view.solicitar_input("\nEscolha uma opção: ")
+
+            if opcao == '0':
+                print("\n👋 Encerrando o programa...")
+                self.db.close()
+                break
+
+            # Executa o comando correspondente 
+            comando = self.comandos.get(opcao)
+            if comando:
+                comando.executar()
+            else:
+                print("❌ Opção inválida!")
+
+            self.view.aguardar_continuar()
+
+# ==================== PONTO DE ENTRADA ====================
+
+def main():
+    """Função principal"""
+    controller = MenuController()
+    controller.executar()
+
+if __name__ == "__main__":
+    main()
