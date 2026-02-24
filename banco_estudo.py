@@ -34,24 +34,32 @@ class DatabaseConnection:
 
     _instance = None
 
-    def __new__(cls, db_name: str = "estudo.db"):
+    def __new__(cls, db_name: str = "estudo.db", criar_tabela: bool = True):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._initialized = False
         return cls._instance
     
-    def __init__(self, db_name: str = "estudo.db"):
+    def __init__(self, db_name: str = "estudo.db", criar_tabela: bool = True):
         if self._initialized:
             return
         
         self.db_name = db_name
+
+        # Verifica se o banco existe
+        banco_existe = os.path.exists(db_name)
+        
         self.conexao = sqlite3.connect(db_name)
         self.cursor = self.conexao.cursor()
-        self._criar_tabela()
-        self._initialized = True
-        print(f"✓ Conectado ao banco '{db_name}'")
 
-    def _criar_tabela(self) -> None:
+        # Só cria tabela se solicitado ou se banco não existia
+        if criar_tabela and not banco_existe:
+            self.criar_tabela()
+            print(f"✓ Banco '{db_name}' criado e conectado")
+        else:
+            print(f"✓ Conectado ao banco existente '{db_name}'")
+
+    def criar_tabela(self) -> None:
         """Cria a tabela se não existir"""
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS controle_de_gastos(
@@ -514,8 +522,8 @@ class LimparTelaCommand(Command):
 class MenuController:
     """Controlador principal do sistema"""
 
-    def __init__(self):
-        self.db = DatabaseConnection()
+    def __init__(self, db_name: str = "estudo.db"):
+        self.db = DatabaseConnection(db_name)
         self.repo = GastoRepository(self.db)
         self.view = GastoView()
 
@@ -569,7 +577,12 @@ class MenuController:
 
 def main():
     """Função principal"""
-    controller = MenuController()
+    import sys
+
+    # Aceita caminho do banco como argumento: python script.py meu_banco.db
+    db_name = sys.argv[1] if len(sys.argv) > 1 else "estudo.db"
+    
+    controller = MenuController(db_name)
     controller.executar()
 
 if __name__ == "__main__":
