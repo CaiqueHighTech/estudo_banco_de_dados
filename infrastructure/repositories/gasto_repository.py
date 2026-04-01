@@ -195,7 +195,7 @@ class GastoRepository(IGastoRepository):
             with self._db.sessao() as s:
             total: int = s.query(func.count(_GastoORM.id)).scalar() or 0
 
-            if total:
+            if total == 0:
                 return EstatisticasDTO(
                     total_registros=0,
                     soma_total=0.0,
