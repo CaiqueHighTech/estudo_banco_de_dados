@@ -10,6 +10,7 @@ Padrões aplicados:
 from __future__ import annotations
 from typing import Optional
 from .value_objects import Descricao, Valor, DataGasto
+from decimal import Decimal
 
 class Gasto:
     """
@@ -36,7 +37,7 @@ class Gasto:
     def novo(
         cls,
         descricao: str,
-        valor: float | int | str,
+        valor: Decimal | int | str,
         data_gasto: Optional[str] = None,
     ) -> Gasto:
         """Cria um Gasto transiente (sem ID) a partir de primitivos."""

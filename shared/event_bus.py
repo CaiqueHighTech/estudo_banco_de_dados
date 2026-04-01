@@ -18,6 +18,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Dict, List, Any
+from configs.config import configs
 
 # ── Contrato do Observer ──────────────────────────────────────────────
 class IEventHandler(ABC):
@@ -28,11 +29,7 @@ class IEventHandler(ABC):
 class LoggingHandler(IEventHandler):
     """Loga todos os eventos com timestamp."""
  
-    _EMOJIS = {
-        "GASTO_CRIADO":     "📥",
-        "GASTO_ATUALIZADO": "✏️ ",
-        "GASTO_REMOVIDO":   "🗑️ ",
-    }
+    _EMOJIS = configs._EMOJIS
 
     def handle(self, event_type: str, payload: Dict[str, Any]) -> None:
         ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

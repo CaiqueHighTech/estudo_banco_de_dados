@@ -1,3 +1,11 @@
-import logger
+from pydantic import BaseModel
 
-logger = logger.
+class BaseConfig(BaseModel):
+    
+    _EMOJIS = {
+        "GASTO_CRIADO":     "📥",
+        "GASTO_ATUALIZADO": "✏️ ",
+        "GASTO_REMOVIDO":   "🗑️ ",
+    }
+
+configs = BaseConfig()
