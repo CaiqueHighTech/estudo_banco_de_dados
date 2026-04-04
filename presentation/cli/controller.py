@@ -12,7 +12,7 @@ Padrões aplicados:
 from __future__ import annotations
 from typing import Dict
 
-from ...application.services.gasto_service import GastoService
+from application.services.gasto_service import GastoService
 from .commands import (
     ICommand,
     InserirGastoCommand,

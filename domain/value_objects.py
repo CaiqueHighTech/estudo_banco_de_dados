@@ -8,10 +8,10 @@ Padrões aplicados:
 """
 
 from __future__ import annotations
-from dataclases import dataclass
+from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
-from pydantic import Field
+from configs.config import configs
 
 @dataclass(frozen=True)
 class Valor:
@@ -30,7 +30,7 @@ class Valor:
             raise ValueError("O valor deve ser maior que zero.")
 
     @classmethod
-    def de(cls, valor: float | int | str) -> Valor:
+    def de(cls, valor: Decimal | int | str) -> Valor:
         try:
             return cls(quantia=Decimal(str(valor)))
         except InvalidOperation:
@@ -70,8 +70,6 @@ class Descricao:
     Limite e sanitização embutidos.
     """
 
-    _MAX_LEN: str = Field(max_length=255, description="Descrição não pode exceder 255 caracteres.")
-
     texto: str
 
     def __post_init__(self) -> None:
@@ -79,8 +77,8 @@ class Descricao:
         object.__setattr__(self, "texto", texto)
         if not texto:
             raise ValueError("Descrição não pode estar vazia.")
-        if len(texto) > self._MAX_LEN:
-            raise ValueError(f"Descrição não pode exceder {self._MAX_LEN} caracteres.")
+        if len(texto) > configs.MAX_LEN:
+            raise ValueError(f"Descrição não pode exceder {configs.MAX_LEN} caracteres.")
         
     def __str__(self) -> str:
         return self.texto

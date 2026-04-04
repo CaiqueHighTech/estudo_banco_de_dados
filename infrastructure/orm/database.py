@@ -70,8 +70,8 @@ class DatabaseSession:
         finally:
             session.close()
 
-        def fechar(self) -> None:
-            self._engine.dispose()
-            DatabaseSession._instance = None
-            print("✓ Conexão encerrada.")
+    def fechar(self) -> None:
+        self._engine.dispose()
+        DatabaseSession._instance = None
+        print("✓ Conexão encerrada.")
 

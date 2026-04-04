@@ -15,7 +15,7 @@ Microsserviços:
   remoto. Nenhuma outra linha do projeto precisa mudar.
 """
 
-import sys
+
 from __future__ import annotations
 
 # ── Infraestrutura ────────────────────────────────────────────────────
@@ -34,11 +34,12 @@ from shared.event_bus import EventBus, LoggingHandler, AuditHandler
 from presentation.cli.view import GastoView
 from presentation.cli.controller import MenuController
 
+import sys
+
 def _construir_event_bus() -> EventBus:
     """Monta o barramento de eventos com os handlers desejados."""
     bus = EventBus()
-    bus.registrar("GASTO_CRIADO", LoggingHandler)
-    bus.registrar("GASTO_CRIADO",     LoggingHandler())
+    bus.registrar("GASTO_CRIADO", LoggingHandler())
     bus.registrar("GASTO_ATUALIZADO", LoggingHandler())
     bus.registrar("GASTO_REMOVIDO",   LoggingHandler())
     bus.registrar("*",                AuditHandler())

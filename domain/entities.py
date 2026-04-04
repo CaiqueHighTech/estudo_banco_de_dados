@@ -24,7 +24,7 @@ class Gasto:
         descricao: Descricao,
         valor: Valor,
         data_gasto: DataGasto,
-        id: Optional[int] = None,
+        id: int = None,
     ) -> None:
         self._id = id
         self._descricao = descricao
@@ -42,7 +42,7 @@ class Gasto:
     ) -> Gasto:
         """Cria um Gasto transiente (sem ID) a partir de primitivos."""
         return cls(
-            descricao=Descricao(descricao),
+            descricao=Descricao(str(descricao)),
             valor=Valor.de(valor),
             data_gasto=DataGasto.de_string(data_gasto) if data_gasto else DataGasto.hoje(),
         )
@@ -50,7 +50,7 @@ class Gasto:
     # ── Propriedades (read-only) ──────────────────────────────────────
 
     @property
-    def id(self) -> Optional[int]:
+    def id(self) -> int:
         return self._id
  
     @property
@@ -68,9 +68,9 @@ class Gasto:
     # ── Comportamentos de domínio ─────────────────────────────────────
 
     def alterar_descricao(self, nova: str) -> None:
-        self._descricao = Descricao(nova)
+        self._descricao = Descricao(str(nova))
 
-    def alterar_valor(self, novo: float | int | str) -> None:
+    def alterar_valor(self, novo: Decimal | int | str) -> None:
         self._valor = Valor.de(novo)
 
     def alterar_data(self, nova: str) -> None:

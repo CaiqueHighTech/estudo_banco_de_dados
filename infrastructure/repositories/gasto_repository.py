@@ -19,14 +19,14 @@ from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
-from sqlalchemy import func, extract
+from sqlalchemy import func, extract, text
 from sqlalchemy.exc import SQLAlchemyError
-from ...application.interfaces.i_gasto_repository import IGastoRepository
-from ...application.dtos import (
+from application.interfaces.i_gasto_repository import IGastoRepository
+from application.dtos import (
     CriarGastoDTO, AtualizarGastoDTO,
     GastoDTO, EstatisticasDTO,
 )
-from ...domain.exceptions import GastoNaoEncontradoError, RepositorioError
+from domain.exceptions import GastoNaoEncontradoError, RepositorioError
 from ..orm.database import DatabaseSession
 from ..orm.models import _GastoORM
 
@@ -46,7 +46,7 @@ class GastoRepository(IGastoRepository):
         return GastoDTO(
             id=m.id,
             descricao=m.descricao,
-            valor=float(m.valor),
+            valor=Decimal(str(m.valor)),
             data_gasto=m.data_gasto.strftime("%Y-%m-%d")
         )
 
@@ -120,38 +120,23 @@ class GastoRepository(IGastoRepository):
     def buscar_por_descricao(self, termo: str) -> List[GastoDTO]:
         try:
             with self._db.sessao() as s:
-                rows = (
-                    s.query(_GastoORM)
-                    .filter(_GastoORM.descricao.ilike(f"%{termo}%")
-                    .order_by(_GastoORM.data_gasto.desc())
-                    .all()
-                )
+                rows = s.query(_GastoORM).filter(_GastoORM.descricao.ilike(f"%{termo}%")).order_by(_GastoORM.data_gasto.desc()).all()
                 return [self._para_dto(r) for r in rows]
         except SQLAlchemyError as e:
-            raise RepositorioError(f"Erro ao buscar gastos por descrição: {str(e)} from e
+            raise RepositorioError(f"Erro ao buscar gastos por descrição: {str(e)}") from e
 
     def buscar_por_valor_minimo(self, valor_min: Decimal) -> List[GastoDTO]:
         try:
             with self._db.sessao() as s:
-                rows = (
-                    s.query(_GastoORM)
-                    .filter(_GastoORM.valor >= valor_min)
-                    .order_by(_GastoORM.data_gasto.desc())
-                    .all()
-                )
+                rows = s.query(_GastoORM).filter(_GastoORM.valor >= valor_min).order_by(_GastoORM.data_gasto.desc()).all()
                 return [self._para_dto(r) for r in rows]
         except SQLAlchemyError as e:
             raise RepositorioError(f"Erro ao buscar gastos por valor mínimo: {str(e)}") from e
 
-    def buscar_por_valor_maximo(self, valor_max: float) -> List[GastoDTO]:
+    def buscar_por_valor_maximo(self, valor_max: Decimal) -> List[GastoDTO]:
         try:
             with self._db.sessao() as s:
-                rows = (
-                    s.query(_GastoORM)
-                    .filter(_GastoORM.valor <= valor_max)
-                    .order_by(_GastoORM.data_gasto.desc())
-                    .all()
-                )
+                rows = s.query(_GastoORM).filter(_GastoORM.valor <= valor_max).order_by(_GastoORM.data_gasto.desc()).all()
                 return [self._para_dto(r) for r in rows]
         except SQLAlchemyError as e:
             raise RepositorioError(f"Falha na busca por valor máximo: {str(e)}") from e
@@ -161,39 +146,35 @@ class GastoRepository(IGastoRepository):
             d_inicio = datetime.strptime(inicio, "%Y-%m-%d").date()
             d_fim = datetime.strptime(fim, "%Y-%m-%d").date()
             with self._db.sessao() as s:
-                rows = (
-                    s.query(_GastoORM)
-                    .filter(_GastoORM.data_gasto.between(d_inicio, d_fim))
-                    .order_by(_GastoORM.data_gasto.desc())
-                    .all()
-                )
+                rows = s.query(_GastoORM).filter(_GastoORM.data_gasto.between(d_inicio, d_fim)).order_by(_GastoORM.data_gasto.desc()).all()
                 return [self._para_dto(r) for r in rows]
         except SQLAlchemyError as e:
             raise RepositorioError(f"Erro ao buscar gastos por período: {str(e)}") from e
 
-    def buscar_por_mes_ano(self, mes_ano: str) -> List[GastoDTO]:
+    def buscar_por_mes_ano_dia(self, mes_ano: str) -> List[GastoDTO]:
         try:
-            ano, mes = map(int, mes_ano.split("-"))
+            ano, mes, dia = map(int, mes_ano.split("-"))
             with self._db.sessao() as s:
                 rows = (
                     s.query(_GastoORM)
                     .filter(
                         extract("year", _GastoORM.data_gasto) == ano,
-                        extract("month", _GastoORM.data_gasto) == mes
+                        extract("month", _GastoORM.data_gasto) == mes,
+                        extract("day", _GastoORM.data_gasto) == dia,
                     )
                     .order_by(_GastoORM.data_gasto.desc())
                     .all()
                 )
                 return [self._para_dto(r) for r in rows]
         except SQLAlchemyError as e:
-            raise RepositorioError(f"Erro ao buscar gastos por mês/ano: {str(e)}") from e
+            raise RepositorioError(f"Erro ao buscar gastos por mês/ano/dia: {str(e)}") from e
 
     # ── Agregação ─────────────────────────────────────────────────────
 
     def obter_estatisticas(self) -> EstatisticasDTO:
         try:
             with self._db.sessao() as s:
-            total: int = s.query(func.count(_GastoORM.id)).scalar() or 0
+                total: int = s.query(func.count(_GastoORM.id)).scalar() or 0
 
             if total == 0:
                 return EstatisticasDTO(
@@ -202,7 +183,7 @@ class GastoRepository(IGastoRepository):
                     media=0,
                     maior_gasto={},
                     menor_gasto={},
-                    por_mes=[],
+                    por_mes_ano_dia=[],
                 )
             soma = Decimal(s.query(func.sum(_GastoORM.valor)).scalar() or 0)
             media = Decimal(s.query(func.avg(_GastoORM.valor)).scalar() or 0)
@@ -210,14 +191,15 @@ class GastoRepository(IGastoRepository):
             menor = s.query(_GastoORM).order_by(_GastoORM.valor.asc()).first()
 
             # Agrupamento por mês via SQLAlchemy (sem SQL cru)
-            por_mes_q = (
+            mes_ano_dia_expr = func.strftime("%Y-%m-%d", _GastoORM.data_gasto)
+            por_mes_ano_dia_q = (
                 s.query(
-                    func.strftime("%Y-%m", _GastoORM.data_gasto).label("mes_ano"),
+                    mes_ano_dia_expr.label("mes_ano_dia"),
                     func.count(_GastoORM.id).label("quantidade"),
                     func.sum(_GastoORM.valor).label("total"),
                 )
-                .group_by("mes")
-                .order_by(func.strftime("%Y-%m", _GastoORM.data_gasto).desc())
+                .group_by(mes_ano_dia_expr)
+                .order_by(mes_ano_dia_expr.desc())
                 .all()
             )
 
@@ -225,10 +207,10 @@ class GastoRepository(IGastoRepository):
                 total_registros=total,
                 soma_total=soma,
                 media=media,
-                maior_gasto={"valor": Decimal(maior.valor), "descricao": maior.descricao} if maior else {},
-                menor_gasto={"valor": Decimal(menor.valor), "descricao": menor.descricao} if menor else {},
-                por_mes=[
-                    {"mes": r.mes, "quantidade": r.quantidade, "total": Decimal(r.total) for r in por_mes_q}
+                maior_gasto={"valor": Decimal(str(maior.valor)), "descricao": maior.descricao} if maior else {},
+                menor_gasto={"valor": Decimal(str(menor.valor)), "descricao": menor.descricao} if menor else {},
+                por_mes_ano_dia=[
+                    {"mes_ano_dia": r.mes_ano_dia, "quantidade": r.quantidade, "total": Decimal(str(r.total))} for r in por_mes_ano_dia_q
                 ],
             )
         except SQLAlchemyError as e:

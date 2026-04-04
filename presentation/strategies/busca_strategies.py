@@ -11,8 +11,8 @@ Padrões aplicados:
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import List
-from ...application.interfaces.i_gasto_repository import IGastoRepository
-from ...application.dtos import GastoDTO
+from application.interfaces.i_gasto_repository import IGastoRepository
+from application.dtos import GastoDTO
 from decimal import Decimal
 
 class IBuscaStrategy(ABC):
@@ -36,7 +36,7 @@ class BuscaPorValorMinimo(IBuscaStrategy):
         return repo.buscar_por_valor_minimo(self._valor_min)
     
 class BuscaPorValorMaximo(IBuscaStrategy):
-    def __init__(self, valor_max: float) -> None:
+    def __init__(self, valor_max: Decimal) -> None:
         self._valor_max = valor_max
  
     def executar(self, repo: IGastoRepository) -> List[GastoDTO]:
@@ -50,9 +50,9 @@ class BuscaPorPeriodo(IBuscaStrategy):
     def executar(self, repo: IGastoRepository) -> List[GastoDTO]:
         return repo.buscar_por_periodo(self._inicio, self._fim)
 
-class BuscaPorMesAno(IBuscaStrategy):
+class BuscaPorMesAnoDia(IBuscaStrategy):
     def __init__(self, mes_ano: str) -> None:
         self._mes_ano = mes_ano
  
     def executar(self, repo: IGastoRepository) -> List[GastoDTO]:
-        return repo.buscar_por_mes_ano(self._mes_ano)
+        return repo.buscar_por_mes_ano_dia(self._mes_ano)

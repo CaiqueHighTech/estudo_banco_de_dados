@@ -18,13 +18,13 @@ Segurança:
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Callable, Dict
-from ...application.dtos import CriarGastoDTO, AtualizarGastoDTO
-from ...application.services.gasto_service import GastoService
-from ...domain.exceptions import GastoNaoEncontradoError, RepositorioError
+from application.dtos import CriarGastoDTO, AtualizarGastoDTO
+from application.services.gasto_service import GastoService
+from domain.exceptions import GastoNaoEncontradoError, RepositorioError
 from ..strategies.busca_strategies import (
     IBuscaStrategy,
     BuscaPorDescricao, BuscaPorValorMinimo,
-    BuscaPorValorMaximo, BuscaPorPeriodo, BuscaPorMesAno,
+    BuscaPorValorMaximo, BuscaPorPeriodo, BuscaPorMesAnoDia,
 )
 from .view import GastoView
 from decimal import Decimal
@@ -51,7 +51,7 @@ class InserirGastoCommand(ICommand):
 
             dto = CriarGastoDTO(
                 descricao=descricao,
-                valor=Decimal(valor_str),
+                valor=Decimal(str(valor_str)),
                 data_gasto=data_str or None,
             )
             gasto = self._svc.registrar_gasto(dto)
@@ -81,12 +81,12 @@ class BuscarGastosCommand(ICommand):
         self._svc = service
         self._view = view
 
-        self._factories = Dict[str, Callable[[], IBuscaStrategy]] = {
+        self._factories: Dict[str, Callable[[], IBuscaStrategy]] = {
             "1": self._busca_descricao,
             "2": self._busca_valor_minimo,
             "3": self._busca_valor_maximo,
             "4": self._busca_periodo,
-            "5": self._busca_mes_ano,
+            "5": self._busca_mes_ano_dia,
         }
 
     def executar(self) -> None:
@@ -95,7 +95,7 @@ class BuscarGastosCommand(ICommand):
         print("  2. Por valor mínimo")
         print("  3. Por valor máximo")
         print("  4. Por período")
-        print("  5. Por mês/ano")
+        print("  5. Por mês/ano/dia")
 
         opcao = self._view.solicitar_input("\nOpção: ")
         factory = self._factories.get(opcao)
@@ -131,9 +131,9 @@ class BuscarGastosCommand(ICommand):
         f = self._view.solicitar_input("Data final   (YYYY-MM-DD): ")
         return BuscaPorPeriodo(i, f)
 
-    def _busca_mes_ano(self) -> IBuscaStrategy:
-        m = self._view.solicitar_input("Mês/Ano (YYYY-MM): ")
-        return BuscaPorMesAno(m)
+    def _busca_mes_ano_dia(self) -> IBuscaStrategy:
+        m = self._view.solicitar_input("Mês/Ano/Dia (YYYY-MM-DD): ")
+        return BuscaPorMesAnoDia(m)
     
 class AtualizarGastoCommand(ICommand):
     def __init__(self, service: GastoService, view: GastoView) -> None:

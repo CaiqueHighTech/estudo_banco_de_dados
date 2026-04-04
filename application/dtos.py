@@ -13,18 +13,18 @@ Segurança:
     apenas primitivos — sem referência a tabelas ou colunas.
 """
 
-from decimal import Decimal
 from __future__ import annotations
+from decimal import Decimal
 from dataclasses import dataclass, field
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 
 # ── Entrada (Commands) ────────────────────────────────────────────────
 
 @dataclass
 class CriarGastoDTO:
     """Dados necessários para registrar um novo gasto."""
-    descricao: Optional[str] = None
     valor: Decimal
+    descricao: Optional[str] = None
     data_gasto: Optional[str] = None # None → hoje
 
 @dataclass
@@ -51,8 +51,8 @@ class FiltroBuscaDTO:
 class GastoDTO:
     """Representação de leitura de um gasto — imutável e seguro."""
     id: int
-    descricao: Optional[str] = None
     valor: Decimal
+    descricao: Optional[str] = None
     data_gasto: Optional[str] = None
  
  
@@ -60,8 +60,8 @@ class GastoDTO:
 class EstatisticasDTO:
     """Resumo agregado dos gastos."""
     total_registros: int
-    soma_total: Decimal
-    media: Decimal
-    maior_gasto: Dict
-    menor_gasto: Dict
-    por_mes: List[Dict] = field(default_factory=list)
+    soma_total: Optional[Decimal] = None
+    media: Optional[Decimal] = None
+    maior_gasto: Optional[Dict[str, Decimal]] = None
+    menor_gasto: Optional[Dict[str, Decimal]] = None
+    por_mes_ano_dia: List[Dict[str, Any]] = field(default_factory=list)

@@ -7,10 +7,12 @@ Padrões aplicados:
   GRASP : Low Coupling — recebe apenas DTOs, nunca entidades ou modelos ORM
 """
 
-import os
 from __future__ import annotations
+import os
 from typing import List
-from ...application.dtos import GastoDTO, EstatisticasDTO
+from application.dtos import GastoDTO, EstatisticasDTO
+from configs.config import configs
+from decimal import Decimal
 
 class GastoView:
     """Responsável exclusivamente pela apresentação no terminal."""
@@ -23,10 +25,9 @@ class GastoView:
 
     @staticmethod
     def exibir_cabecalho(titulo: str) -> None:
-        largura = 54
-        print(f"\n{'═' * largura}")
+        print(f"\n{'═' * configs.largura}")
         print(f"  {titulo}")
-        print(f"{'═' * largura}")
+        print(f"{'═' * configs.largura}")
 
     @staticmethod
     def aguardar_continuar() -> None:
@@ -42,7 +43,7 @@ class GastoView:
         print(f"\n  {'ID':<6} {'Descrição':<32} {'Valor':>12}  {'Data'}")
         print(f"  {'─' * 62}")
 
-        total = 0.0
+        total = Decimal(str(0.0))
         for g in gastos:
             desc = g.descricao[:30] + ".." if  len(g.descricao) > 30 else g.descricao
             print(f"  {g.id:<6} {desc:<32} R${g.valor:>9.2f}  {g.data_gasto}")
@@ -70,11 +71,11 @@ class GastoView:
             print(f"  ⬇️  Menor gasto        : R$ {stats.menor_gasto['valor']:.2f}"
                   f"  ({stats.menor_gasto['descricao']})")
         
-        if stats.por_mes:
-            print(f"\n  {'Mês':<10} {'Qtd':>6}  {'Total':>12}")
+        if stats.por_mes_ano_dia:
+            print(f"\n  {'Mês/Ano/Dia':<10} {'Qtd':>6}  {'Total':>12}")
             print(f"  {'─' * 34}")
-            for r in stats.por_mes:
-                print(f"  {r['mes']:<10} {r['quantidade']:>6}  R${r['total']:>9.2f}")
+            for r in stats.por_mes_ano_dia:
+                print(f"  {r['mes_ano_dia']:<10} {r['quantidade']:>6}  R${r['total']:>9.2f}")
 
     # ── Input ─────────────────────────────────────────────────────────
 

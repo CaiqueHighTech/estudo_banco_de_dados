@@ -14,7 +14,7 @@ O 'wiring' é feito apenas no main.py (Composition Root).
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import List, Optional
-
+from decimal import Decimal
 from ..dtos import CriarGastoDTO, AtualizarGastoDTO, GastoDTO, EstatisticasDTO
 
 
@@ -44,16 +44,16 @@ class IGastoRepository(ABC):
     def buscar_por_descricao(self, termo: str) -> List[GastoDTO]: ...
 
     @abstractmethod
-    def buscar_por_valor_minimo(self, valor_min: float) -> List[GastoDTO]: ...
+    def buscar_por_valor_minimo(self, valor_min: Decimal) -> List[GastoDTO]: ...
 
     @abstractmethod
-    def buscar_por_valor_maximo(self, valor_max: float) -> List[GastoDTO]: ...
+    def buscar_por_valor_maximo(self, valor_max: Decimal) -> List[GastoDTO]: ...
 
     @abstractmethod
     def buscar_por_periodo(self, inicio: str, fim: str) -> List[GastoDTO]: ...
 
     @abstractmethod
-    def buscar_por_mes_ano(self, mes_ano: str) -> List[GastoDTO]: ...
+    def buscar_por_mes_ano_dia(self, mes_ano: str) -> List[GastoDTO]: ...
 
     # ── Agregação ─────────────────────────────────────────────────────
 

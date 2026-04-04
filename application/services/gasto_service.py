@@ -17,7 +17,7 @@ from __future__ import annotations
 from typing import List, TYPE_CHECKING
 from ..interfaces.i_gasto_repository import IGastoRepository
 from ..dtos import CriarGastoDTO, AtualizarGastoDTO, GastoDTO, EstatisticasDTO
-from ...domain.exceptions import GastoNaoEncontradoError
+from domain.exceptions import GastoNaoEncontradoError
 
 if TYPE_CHECKING:
     from ...shared.event_bus import EventBus

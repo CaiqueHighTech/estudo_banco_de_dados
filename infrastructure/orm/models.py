@@ -15,8 +15,9 @@ Padrões aplicados:
 from __future__ import annotations
 from datetime import date
 from decimal import Decimal
-from sqlalchemy import Integer, String, Numeric, Date, CheckConstraint
-from sqlalchemy import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import Integer, String, Numeric, Date
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
 
 class _Base(DeclarativeBase):
     """Base para os modelos ORM — não exposta fora da infraestrutura."""
@@ -30,16 +31,13 @@ class _GastoORM(_Base):
     """
 
     __tablename__ = "controle_de_gastos"
-    __table_args__ = (
-        CheckConstraint("gasto" > 0, name="ck_gasto_positivo")
-    )
 
     # Mapeamento explícito: atributo Python ↔ coluna do banco
 
     id: Mapped[int] = mapped_column("id", Integer, primary_key=True, autoincrement=True)
     descricao: Mapped[str] = mapped_column("descricao", String(255), nullable=False)
-    gasto: Mapped[Decimal] = mapped_column("gasto", Numeric(12, 2), nullable=False)
+    valor: Mapped[Decimal] = mapped_column("gasto", Numeric(12, 2), nullable=False)
     data_gasto: Mapped[date] = mapped_column("data_gasto", Date, nullable=False)
 
     def __repr__(self) -> str:
-        return f"<_GastoORM id={self.id}>"
+      return f"<_GastoORM id={self.id}>"
