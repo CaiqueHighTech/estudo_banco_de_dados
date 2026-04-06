@@ -52,7 +52,7 @@ class MenuController:
         while True:
             self._exibir_menu()
             opcao = self._view.solicitar_input("Escolha uma opção: ")
-            if opcao == "0":
+            if opcao == "8":
                 print("\n  👋 Encerrando o sistema...\n")
                 break
             comando = self._comandos.get(opcao)
@@ -76,6 +76,6 @@ class MenuController:
         print("  5.  🗑️   Deletar gasto")
         print("  6.  📊  Estatísticas")
         print("  7.  🧹  Limpar tela")
-        print("  0.  ❌  Sair")
+        print("  8.  ❌  Sair")
         print("═" * 54)
     

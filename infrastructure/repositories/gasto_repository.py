@@ -26,7 +26,8 @@ from application.dtos import (
     CriarGastoDTO, AtualizarGastoDTO,
     GastoDTO, EstatisticasDTO,
 )
-from domain.exceptions import GastoNaoEncontradoError, RepositorioError
+from domain.exceptions import GastoNaoEncontradoError, RepositorioError, RegraDeNegocioError
+from domain.value_objects import Valor
 from ..orm.database import DatabaseSession
 from ..orm.models import _GastoORM
 
@@ -58,10 +59,15 @@ class GastoRepository(IGastoRepository):
                 datetime.strptime(dto.data_gasto, "%Y-%m-%d").date()
                 if dto.data_gasto else datetime.today().date()
             )
+            try:
+                valor_validado = Valor.de(dto.valor)
+            except ValueError as e:
+                raise RegraDeNegocioError(str(e)) from e
+            
             with self._db.sessao() as s:
                 model = _GastoORM(
                     descricao=dto.descricao,
-                    valor=Decimal(str(dto.valor)),
+                    valor=valor_validado.quantia,
                     data_gasto=data
                 )
                 s.add(model)
@@ -79,7 +85,12 @@ class GastoRepository(IGastoRepository):
                 if dto.descricao is not None:
                     model.descricao = dto.descricao
                 if dto.valor is not None:
-                    model.valor = Decimal(str(dto.valor))
+                    # Validação via Value Object - lança ValueError se valor <= 0
+                    try:
+                        valor_validado = Valor.de(dto.valor)
+                    except ValueError as e:
+                        raise RegraDeNegocioError(str(e)) from e
+                    model.valor = valor_validado.quantia
                 if dto.data_gasto is not None:
                     model.data_gasto = datetime.strptime(dto.data_gasto, "%Y-%m-%d").date()
 

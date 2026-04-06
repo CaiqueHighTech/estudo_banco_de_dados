@@ -20,7 +20,7 @@ from abc import ABC, abstractmethod
 from typing import Callable, Dict
 from application.dtos import CriarGastoDTO, AtualizarGastoDTO
 from application.services.gasto_service import GastoService
-from domain.exceptions import GastoNaoEncontradoError, RepositorioError
+from domain.exceptions import GastoNaoEncontradoError, RepositorioError, RegraDeNegocioError
 from ..strategies.busca_strategies import (
     IBuscaStrategy,
     BuscaPorDescricao, BuscaPorValorMinimo,
@@ -58,6 +58,8 @@ class InserirGastoCommand(ICommand):
             print(f"\n  ✓ Gasto registrado com sucesso! ID: {gasto.id}")
         except ValueError as exc:
             print(f"\n  ❌ Dados inválidos: {exc}")
+        except RegraDeNegocioError as exc:
+            print(f"\n  ❌ Regra de negócio violada: {exc}")
         except RepositorioError as exc:
             print(f"\n  ❌ Erro ao persistir: {exc}")
 
@@ -176,6 +178,8 @@ class AtualizarGastoCommand(ICommand):
             print(f"  ❌ {exc}")
         except ValueError:
             print("  ❌ ID inválido!")
+        except RegraDeNegocioError as exc:
+            print(f"  ❌ Regra de negócio violada: {exc}")
         except RepositorioError as exc:
             print(f"  ❌ Erro ao atualizar: {exc}")
     
