@@ -49,15 +49,28 @@ class InserirGastoCommand(ICommand):
             valor_str = self._view.solicitar_input("Valor (R$): ")
             data_str  = self._view.solicitar_input("Data (YYYY-MM-DD) ou Enter para hoje: ")
 
+            # Validação de campos obrigatórios
+            if not descricao or not descricao.strip():
+                print("\n  ❌ Descrição é obrigatória!")
+                return
+            if not valor_str or not valor_str.strip():
+                print("\n  ❌ Valor é obrigatório!")
+                return
+
+            # Validação de formato numérico
+            try:
+                valor = Decimal(valor_str)
+            except Exception:
+                print("\n  ❌ Valor deve ser numérico!")
+                return
+
             dto = CriarGastoDTO(
-                descricao=descricao,
-                valor=Decimal(str(valor_str)),
+                descricao=descricao.strip(),
+                valor=valor,
                 data_gasto=data_str or None,
             )
             gasto = self._svc.registrar_gasto(dto)
             print(f"\n  ✓ Gasto registrado com sucesso! ID: {gasto.id}")
-        except ValueError as exc:
-            print(f"\n  ❌ Dados inválidos: {exc}")
         except RegraDeNegocioError as exc:
             print(f"\n  ❌ Regra de negócio violada: {exc}")
         except RepositorioError as exc:
@@ -118,14 +131,28 @@ class BuscarGastosCommand(ICommand):
     # Factory Methods privados
     def _busca_descricao(self) -> IBuscaStrategy:
         t = self._view.solicitar_input("Termo da descrição: ")
-        return BuscaPorDescricao(t)
+        if not t or not t.strip():
+            raise ValueError("Termo de busca não pode estar vazio.")
+        return BuscaPorDescricao(t.strip())
 
     def _busca_valor_minimo(self) -> IBuscaStrategy:
-        v = Decimal(self._view.solicitar_input("Valor mínimo (R$): "))
-        return BuscaPorValorMinimo(v) 
+        v_str = self._view.solicitar_input("Valor mínimo (R$): ")
+        if not v_str or not v_str.strip():
+            raise ValueError("Valor mínimo não pode estar vazio.")
+        try:
+            v = Decimal(v_str)
+        except Exception:
+            raise ValueError("Valor mínimo deve ser numérico.")
+        return BuscaPorValorMinimo(v)
 
     def _busca_valor_maximo(self) -> IBuscaStrategy:
-        v = Decimal(self._view.solicitar_input("Valor máximo (R$): "))
+        v_str = self._view.solicitar_input("Valor máximo (R$): ")
+        if not v_str or not v_str.strip():
+            raise ValueError("Valor máximo não pode estar vazio.")
+        try:
+            v = Decimal(v_str)
+        except Exception:
+            raise ValueError("Valor máximo deve ser numérico.")
         return BuscaPorValorMaximo(v)
 
     def _busca_periodo(self) -> IBuscaStrategy:
