@@ -1,3 +1,4 @@
+```
 gastos_system/
 │
 ├── application/                          # Casos de uso e contratos
@@ -34,3 +35,4 @@ gastos_system/
 │   └── event_bus.py                      # EventBus (Observer) + LoggingHandler + AuditHandler
 │
 └── main.py                               # Composition Root — único ponto de wiring
+```
