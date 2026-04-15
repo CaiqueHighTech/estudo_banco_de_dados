@@ -1,16 +1,19 @@
 gastos_system/
 │
-├── domain/                               # Núcleo de negócio (sem dependências externas)
-│   ├── value_objects.py                  # Valor, DataGasto, Descricao (imutáveis, auto-validantes)
-│   ├── entities.py                       # Entidade Gasto com invariantes protegidas
-│   └── exceptions.py                     # GastoNaoEncontradoError, RepositorioError
-│
 ├── application/                          # Casos de uso e contratos
 │   ├── dtos.py                           # CriarGastoDTO, AtualizarGastoDTO, GastoDTO, EstatisticasDTO
 │   ├── interfaces/
 │   │   └── i_gasto_repository.py         # IGastoRepository — contrato de persistência
 │   └── services/
 │       └── gasto_service.py              # GastoService — orquestra casos de uso (Facade)
+│
+├── configs/                               
+│   └── config.py                         # Configurações para o projeto
+│
+├── domain/                               # Núcleo de negócio (sem dependências externas)
+│   ├── value_objects.py                  # Valor, DataGasto, Descricao (imutáveis, auto-validantes)
+│   ├── entities.py                       # Entidade Gasto com invariantes protegidas
+│   └── exceptions.py                     # GastoNaoEncontradoError, RepositorioError
 │
 ├── infrastructure/                       # Implementações concretas (SQLAlchemy)
 │   ├── orm/
